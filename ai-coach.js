@@ -5,7 +5,29 @@ import { mountSupportCoach } from "./support-coach.js";
 
 const MAX_INPUT = 2000;
 const MAX_TURNS = 6;
-const opening = "先说说最近一次前期打不过的情况：当时是几个人对线，你是怎么开始吃亏的？记不清的部分也可以直接告诉我。";
+const opening = "最近玩公孙离，前期对线里最让你难受的是什么？你可以从最近一次最明显的情况说起。记不清细节也没关系。";
+const DEMO_CASE_COPY = {
+  knowledge: {
+    title: "对面一靠近，我就不知道该怎么打",
+    description: "不确定该注意什么，也不知道什么时候能主动一点",
+  },
+  execution: {
+    title: "我知道该怎么打，但实战就是做不出来",
+    description: "脑子知道，真正打起来却总慢半拍或按乱",
+  },
+  economy: {
+    title: "前面没觉得崩，后来突然发现越来越难打",
+    description: "交手前可能已经出现经济或装备差距",
+  },
+  numbers: {
+    title: "对面两个人时，我基本不敢吃线",
+    description: "先分清是个人问题，还是当时局面本来就难打",
+  },
+  unclear: {
+    title: "我也说不清，就是感觉前期很难受",
+    description: "记不清具体过程也没关系，可以先从一个观察点开始",
+  },
+};
 const escapeHTML = (value) => String(value ?? "").replace(/[&<>"']/g, (char) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
 const paragraph = (value) => escapeHTML(value).replace(/\n/g, "<br>");
 
@@ -119,7 +141,7 @@ export function mountAICoach(container, { context = {}, onExit, exitLabel = "返
   }
 
   function renderChooser() {
-    return `<div class="ai-case-chooser"><p class="ai-section-kicker">看看相似的困扰怎样被拆解</p><h2>诊断示例</h2><p>以下对话均为预设内容，选择后可以逐步查看追问和建议。</p><div class="ai-case-grid">${cases.map((item, index) => `<button type="button" class="ai-case-card" data-ai-case="${escapeHTML(item.id)}" ${status === "checking" ? "disabled" : ""}><span class="ai-case-number">${String(index + 1).padStart(2, "0")}</span><span><strong>${escapeHTML(item.title)}</strong><small>${escapeHTML(item.description)}</small></span><i aria-hidden="true">↗</i></button>`).join("")}</div></div>`;
+    return `<div class="ai-case-chooser"><p class="ai-section-kicker">先从一个最接近你的情况开始</p><h2>哪一种更像你最近的感觉？</h2><p>公开体验版会用相似的预设玩家经历，带你走一遍‘找到突破口’的过程。</p><div class="ai-case-grid">${cases.map((item, index) => `<button type="button" class="ai-case-card" data-ai-case="${escapeHTML(item.id)}" ${status === "checking" ? "disabled" : ""}><span class="ai-case-number">${String(index + 1).padStart(2, "0")}</span><span><strong>${escapeHTML(DEMO_CASE_COPY[item.id]?.title ?? item.title)}</strong><small>${escapeHTML(DEMO_CASE_COPY[item.id]?.description ?? item.description)}</small></span><i aria-hidden="true">↗</i></button>`).join("")}</div></div>`;
   }
 
   function renderComposer() {
@@ -189,13 +211,13 @@ export function mountAICoach(container, { context = {}, onExit, exitLabel = "返
     const returnToDiagnosisLabel = savedDiagnosis && (savedDiagnosis.messages.length || savedDiagnosis.draft.trim()) ? "继续我的诊断" : "开始我的诊断";
     container.innerHTML = `<section class="screen ai-screen">
       <div class="ai-topbar"><button class="flow-back" type="button" data-ai-action="exit"><span aria-hidden="true">←</span>${escapeHTML(exitLabel)}</button><span class="ai-connection ${mode === "live" && status === "ready" ? "is-live" : ""}"><i aria-hidden="true"></i>${modeLabel()}</span></div>
-      <header class="ai-header"><p class="ai-section-kicker">公孙离 · 前期对线诊断 · 测试版</p><h1>前期打不过，<em>先还原那一刻。</em></h1><p>把发生过的事说清楚，我们一起找一个值得先练的突破口。</p></header>
+      <header class="ai-header"><p class="ai-section-kicker">公孙离 · AI 成长教练 · 测试版</p><h1>最近玩公孙离，<em>最让你难受的是什么？</em></h1><p>不用先判断自己哪里有问题。当前版本先从前期对线开始，选一个最接近你的情况，我们一起慢慢拆开。</p></header>
       ${staticHosting ? '<div class="ai-connection-notice" role="status"><span aria-hidden="true">◇</span><div><strong>公开体验版</strong><p>可以体验五个预设案例、查看辅助搭配资料，并在当前浏览器保存示例任务。真实 AI 对话需要后端服务，当前站点尚未连接。</p></div></div>' : status === "checking" ? '<div class="ai-connection-notice" role="status">正在检查 AI 配置…</div>' : status !== "ready" ? `<div class="ai-connection-notice"><span aria-hidden="true">◇</span><div><strong>${escapeHTML(providerName)} 尚未连接</strong><p>${status === "offline" ? "暂时无法连接本地服务。" : `完成 ${escapeHTML(providerName)} 配置并重启后，就可以输入自己的经历。`} 现在可以先体验下面的预设案例。</p><details><summary>如何连接 AI</summary><p>按 <a href="README.md" target="_blank" rel="noopener">项目使用说明</a>配置服务端并启动项目，然后点击重新检查。密钥只保存在服务端。</p></details></div><button type="button" class="ai-text-button" data-ai-action="check-status">重新检查</button></div>` : ""}
       <div class="ai-layout"><div class="ai-chat-panel">
-        <div class="ai-panel-heading"><div><span class="ai-coach-symbol" aria-hidden="true">✧</span><span>${mode === "demo" ? escapeHTML(selectedCase.title) : choosing ? "诊断案例" : "一起拆开这个问题"}</span></div><nav class="ai-panel-controls" aria-label="诊断操作">${mode === "live" ? `${messages.length ? '<button type="button" class="ai-text-button" data-ai-action="restart">重新开始</button>' : ""}<button type="button" class="ai-text-button" data-ai-action="show-cases" ${loading ? "disabled" : ""}>看看案例 ↗</button>` : status === "ready" ? `<button type="button" class="ai-text-button" data-ai-action="go-live">${returnToDiagnosisLabel} ↗</button>` : mode === "demo" ? '<button type="button" class="ai-text-button" data-ai-action="show-cases">换个案例 ↗</button>' : ""}</nav></div>
+        <div class="ai-panel-heading"><div><span class="ai-coach-symbol" aria-hidden="true">✧</span><span>${mode === "demo" ? escapeHTML(selectedCase.title) : choosing ? "先说哪里难受" : "一起拆开这个问题"}</span></div><nav class="ai-panel-controls" aria-label="诊断操作">${mode === "live" ? `${messages.length ? '<button type="button" class="ai-text-button" data-ai-action="restart">重新开始</button>' : ""}<button type="button" class="ai-text-button" data-ai-action="show-cases" ${loading ? "disabled" : ""}>看看案例 ↗</button>` : status === "ready" ? `<button type="button" class="ai-text-button" data-ai-action="go-live">${returnToDiagnosisLabel} ↗</button>` : mode === "demo" ? '<button type="button" class="ai-text-button" data-ai-action="show-cases">换个案例 ↗</button>' : ""}</nav></div>
         ${choosing ? renderChooser() : `${mode === "demo" ? '<p class="ai-demo-banner">这是预设案例回放，不会调用 AI，也不解析自由输入。</p>' : ""}${renderConversation()}${renderComposer()}`}
       </div><aside class="ai-sidebar">
-        <section class="ai-focus-card"><div class="ai-portrait"><img src="assets/gongsunli-hero-reference.png" alt="公孙离"><span>公孙离 / 发育路</span></div><p class="ai-section-kicker">这一次，只解决一个问题</p><h2>一个卡点<br><em>一项行动</em></h2><p>先区分不知道、做不到，以及局面本身带来的压力。</p>${profile ? `<p class="ai-player-context">${escapeHTML(profile)}</p>` : ""}</section>
+        <section class="ai-focus-card"><div class="ai-portrait"><img src="assets/gongsunli-hero-reference.png" alt="公孙离"><span>公孙离 / 发育路</span></div><p class="ai-section-kicker">这一次，只解决一个问题</p><h2>一个卡点<br><em>一项行动</em></h2><p>先把发生了什么说清楚，再一起找最值得先练的那一点。</p>${profile ? `<p class="ai-player-context">${escapeHTML(profile)}</p>` : ""}</section>
         ${renderEvidence()}
         <div class="ai-boundary"><span aria-hidden="true">◇</span><p>描述不够时，先给观察任务。<br>不凭一句话判断你的能力。</p></div>
         <details class="ai-reference-entry"><summary>需要时查阅配合资料</summary><p>复盘涉及辅助配合时，可以参考机制与适用条件，再回来继续分析这一局。</p><button class="ai-text-button" type="button" data-ai-action="open-support" ${loading ? "disabled" : ""}>查看辅助搭配 →</button></details>
