@@ -45,12 +45,12 @@ function renderHome() {
     <section class="screen home-screen">
       <section class="hero" aria-labelledby="hero-title">
         <div class="hero-copy">
-          <p class="eyebrow"><span></span>当前开放 · 公孙离前期对线复盘</p>
-          <h1 id="hero-title">复盘这一局，<br /><em>找到下一步。</em></h1>
-          <p class="subtitle">从最近一次对线经历开始，还原关键选择，找到下一局值得尝试的一项行动。</p>
-          <button class="primary-button" data-action="start">${staticHosting ? "体验复盘案例" : "复盘一次对线"} <span aria-hidden="true">→</span></button>
-          ${staticHosting ? '<p class="static-preview-note">公开体验版：可查看案例、搭配资料并保存示例任务。真实 AI 对话需要连接后端服务。</p>' : ""}
-          <p class="trust-note"><span>◇</span> 不评分 <i></i><span>◇</span> 不上传战绩 <i></i><span>◇</span> 一项行动</p>
+          <p class="eyebrow"><span></span>当前开放 · 公孙离</p>
+          <h1 id="hero-title">找到你现在，<br /><em>最值得突破的一件事。</em></h1>
+          <p class="subtitle">不用给自己打分，也不用先知道问题在哪。从最近一次‘打得不舒服’的经历开始，和 AI 一起找到下一局最值得练的一个点。</p>
+          <button class="primary-button" data-action="start">开始找突破口 <span aria-hidden="true">→</span></button>
+          ${staticHosting ? '<p class="static-preview-note">公开体验版目前使用预设玩家案例。</p>' : ""}
+          <p class="trust-note"><span>◇</span> 不评分 <i></i><span>◇</span> 不上传战绩 <i></i><span>◇</span> 一次只练一个重点</p>
           <div class="saved-task-entry" data-saved-task-entry></div>
         </div>
 
@@ -82,9 +82,9 @@ function renderHome() {
         <section class="process-section" id="about" aria-labelledby="process-title">
           <h2 class="visually-hidden" id="process-title">英雄突破如何帮助玩家</h2>
           <div class="process-grid">
-            <article class="process-card"><b>01</b><span class="process-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 3.5 25 7v7.2c0 6-3.7 10.7-9 14.3-5.3-3.6-9-8.3-9-14.3V7z"/><path d="m17.5 7.5-4 7 4 2.5-3 7.5"/><path d="M10.5 10.5 7 9M21.5 10.5 25 9"/></svg></span><div><h3>还原经历</h3><p>说说最近一次对线怎么吃亏</p></div></article>
-            <article class="process-card"><b>02</b><span class="process-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="8.5"/><path d="M16 3v5M16 24v5M3 16h5M24 16h5"/><path d="m16 12 4 4-4 4-4-4z"/><circle class="icon-dot" cx="16" cy="16" r="1.35"/></svg></span><div><h3>区分原因</h3><p>根据你的回答，逐步核实线索</p></div></article>
-            <article class="process-card"><b>03</b><span class="process-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="m16 3 3.2 5.5L17.4 21h-2.8L12.8 8.5z"/><path d="M11 21h10M13.5 24h5M16 21v7"/><path d="M13 14 8 9 4 10.5l6 7M19 14l5-5 4 1.5-6 7"/></svg></span><div><h3>带走行动</h3><p>先练一件事，或补一条线索</p></div></article>
+            <article class="process-card"><b>01</b><span class="process-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M16 3.5 25 7v7.2c0 6-3.7 10.7-9 14.3-5.3-3.6-9-8.3-9-14.3V7z"/><path d="m17.5 7.5-4 7 4 2.5-3 7.5"/><path d="M10.5 10.5 7 9M21.5 10.5 25 9"/></svg></span><div><h3>说出困扰</h3><p>告诉我最近哪里打得最不舒服</p></div></article>
+            <article class="process-card"><b>02</b><span class="process-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><circle cx="16" cy="16" r="8.5"/><path d="M16 3v5M16 24v5M3 16h5M24 16h5"/><path d="m16 12 4 4-4 4-4-4z"/><circle class="icon-dot" cx="16" cy="16" r="1.35"/></svg></span><div><h3>一起拆开</h3><p>通过几个真实场景，慢慢找到原因</p></div></article>
+            <article class="process-card"><b>03</b><span class="process-icon" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="m16 3 3.2 5.5L17.4 21h-2.8L12.8 8.5z"/><path d="M11 21h10M13.5 24h5M16 21v7"/><path d="M13 14 8 9 4 10.5l6 7M19 14l5-5 4 1.5-6 7"/></svg></span><div><h3>带走一件事</h3><p>下一局只练一个值得优先突破的点</p></div></article>
           </div>
         </section>
       </section>
@@ -94,8 +94,8 @@ function renderHome() {
         <div class="heroes-grid">
           <article class="supported-hero">
             <span class="hero-emblem"><img src="assets/gongsunli-hero-reference.png" alt="公孙离" /></span>
-            <div class="supported-hero-copy"><div class="hero-name-row"><strong>公孙离</strong><small>测试中</small></div><span>发育路 / 高机动射手</span><p>前期对线复盘 · 一次只练一个重点</p></div>
-            <button class="small-gold-button" data-action="start">${staticHosting ? "看看案例" : "开始复盘"} <span>→</span></button>
+            <div class="supported-hero-copy"><div class="hero-name-row"><strong>公孙离</strong><small>测试中</small></div><span>发育路 / 高机动射手</span><p>找到下一个突破口 · 一次只练一个重点</p></div>
+            <button class="small-gold-button" data-action="start">开始找突破口 <span>→</span></button>
           </article>
           <article class="coming-hero"><span>＋</span><div><strong>更多英雄</strong><small>敬请期待</small></div></article>
         </div>

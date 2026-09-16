@@ -1204,7 +1204,7 @@ body:has(.home-screen) .hero-copy h1 {
   max-width: 540px;
   margin-bottom: 25px;
   color: #f6efe4;
-  font-size: 64px;
+  font-size: 52px;
   font-weight: 700;
   line-height: 1.12;
   letter-spacing: -0.045em;
@@ -1218,7 +1218,7 @@ body:has(.home-screen) .subtitle {
   width: 470px;
   margin-bottom: 29px;
   color: rgba(230, 235, 242, 0.78);
-  font-size: 20px;
+  font-size: 18px;
   line-height: 1.65;
 }
 
@@ -1299,7 +1299,7 @@ body:has(.home-screen) .trust-note {
   justify-content: center;
   gap: 10px;
   color: rgba(225, 230, 238, 0.72);
-  font-size: 15px;
+  font-size: 13px;
 }
 
 body:has(.home-screen) .trust-note span { color: #d4b16f; }
@@ -1573,7 +1573,7 @@ body:has(.home-screen) .coming-hero > span { border-radius: 50%; }
 
 @media (min-width: 1440px) and (max-width: 1499px) {
   body:has(.home-screen) .page-shell { width: calc(100% - 144px); }
-  body:has(.home-screen) .hero-copy h1 { font-size: 67px; }
+  body:has(.home-screen) .hero-copy h1 { font-size: 52px; }
 }
 
 /* User-selectable light appearance. Geometry and content stay identical. */
