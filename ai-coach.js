@@ -53,6 +53,34 @@ function formatCoachInterpretation(result) {
   return copy?.get(result.interpretation) ?? result.interpretation;
 }
 
+const RESULT_TITLE_COPY = new Map([
+  ["当前先练：把对手信息转成一个判断", "把对手信息变成自己的出手判断"],
+  ["当前先练：让一个判断落成一个动作", "让你知道的打法真正做出来"],
+  ["当前先练：无人干扰时的最后一下", "先稳住没有压力时的补兵"],
+  ["目前先收集证据，不急着定卡点", "先带回一个对线不顺的片段"],
+]);
+const RESULT_REASON_COPY = new Map([
+  ["你的描述中，对手的关键信息或它对应的出手条件还不清楚，而且类似情况反复出现。这支持先做一次对位理解练习；它仍是基于自述的初步判断。", "你刚才提到，还不清楚该留意对手的什么信息，或看到这些信息后该什么时候出手，而且类似情况反复出现。所以我会先建议你试着把这些信息和自己的选择连起来。这只是根据你描述的情况给出的初步建议，还要试过再看。"],
+  ["你能识别关键信息并解释处理方式，但在条件接近、设备正常时仍多次执行失败。当前更值得观察判断到动作的衔接，而不是直接认定知识不足。", "你已经能说清该看什么、该怎么应对，但你也提到，在双方条件接近、设备正常时，还是多次没按计划做出来。所以我们先看一看：从知道怎么打到实际做出来，卡在了哪一步，还不能直接说是你不懂打法。"],
+  ["你描述了网络正常、没有对手干扰时仍反复漏最后一下的情况。它比“经济低”更直接地支持先检查基础补兵稳定性。", "你刚才说，网络正常、没有对手干扰时，也会反复漏掉最后一下。比起只看经济落后，这个具体情况更能帮我们确认：没有压力时的补兵是否需要先练稳。"],
+  ["你暂时记不清具体过程。现在给能力贴标签，依据还不够。", "你说现在记不清具体过程。只凭这点信息，还不能判断是哪里需要练，我们先把一个片段看清楚。"],
+  ["当时存在人数劣势，这会影响吃线和出手空间。它不能直接证明你的对位认知或操作有问题。", "你提到当时对面人更多，这本来就会让吃线和出手更难。只凭这次情况，还不能说是你不懂怎么打，或操作没做好。"],
+  ["你报告了设备或网络异常，暂时无法把动作失败归因为执行能力。", "你提到当时设备或网络不正常。有这层干扰，还不能把没做出来直接算成操作问题。"],
+  ["已确认的经济差会干扰对线判断，但经济落后本身也可能是更早行为的结果；目前还不能把它当作根因。", "你提到的经济差确实会让对线更难，但它也可能是前面某件事造成的。我们还不能停在“因为经济落后”，先找它从哪里开始拉开。"],
+  ["你描述的困难集中在某一个对手。这不足以推出你面对所有对手都缺少对位知识。", "你说的困难主要出现在面对某一个对手时。我们先看清这个对位，还不能因此说你面对其他对手也不知道该怎么打。"],
+  ["已有线索还不足以稳定区分几个可能原因。继续凭印象回答，可能只会增加猜测。", "聊到这里，几个可能的原因还分不开。继续凭印象回答，可能还是在猜；带回一个具体片段，会更容易看清发生了什么。"],
+  ["同一项情况出现了相互冲突的描述，可能是不同对局，也可能是修正。澄清前不据此给训练结论。", "你前后对同一件事的描述有些不同，可能说的是不同局，也可能是在修正之前的回忆。我们先对齐同一个片段，再决定练什么。"],
+]);
+
+// Exact wording substitutions for display only; keep the engine and saved result intact.
+function formatResultTitle(result) {
+  return RESULT_TITLE_COPY.get(result?.title) ?? result?.title;
+}
+
+function formatResultReason(result) {
+  return RESULT_REASON_COPY.get(result.reason) ?? result.reason;
+}
+
 function browserStorage() {
   try { return window.localStorage; } catch { return null; }
 }
@@ -141,12 +169,13 @@ export function mountAICoach(container, { context = {}, onExit, exitLabel = "返
   function renderResult(result) {
     const collecting = result.status === "collect";
     return `<article class="ai-result ${collecting ? "is-collect" : ""}" aria-label="${collecting ? "观察任务" : "训练建议"}">
-      <p class="ai-section-kicker">${collecting ? "还不能确定卡点 · 先补一条线索" : "当前优先尝试 · 一项行动"}</p>
-      <h3>${escapeHTML(result.result.title)}</h3>
-      <p>${paragraph(result.result.reason)}</p>
-      <div class="ai-action"><span>${collecting ? "下一局这样观察" : "下一局只做这一件事"}</span><p>${paragraph(result.result.action)}</p></div>
-      <div class="ai-measure"><span>怎么知道有没有用</span><p>${paragraph(result.result.measure)}</p></div>
-      <p class="ai-result-note">${collecting ? "记录后带回来，我们再继续区分原因。" : "这是根据当前描述得到的待验证建议，可以用下一局的记录修正。"}</p>
+      <p class="ai-section-kicker">${collecting ? "这次先不急着下结论" : "你现在最值得突破的是"}</p>
+      <h3>${escapeHTML(formatResultTitle(result.result))}</h3>
+      ${collecting ? '<p>现在的信息还不够，先带回一个具体片段，比继续猜更有用。</p>' : ""}
+      <div class="ai-reason"><h4>为什么我会先建议这个？</h4><p>${paragraph(formatResultReason(result.result))}</p></div>
+      <div class="ai-action"><h4>${collecting ? "下一局只观察这一件事" : "下一局只试一件事"}</h4><p>${paragraph(result.result.action)}</p></div>
+      <div class="ai-measure"><h4>怎么知道有没有用</h4><p>${paragraph(result.result.measure)}</p></div>
+      <p class="ai-result-note">${collecting ? "带着这个片段回来，我们再继续找突破口。" : "先试一局，不用急着证明自己对不对。下一次回来，我们再根据实际发生的情况调整。"}</p>
     </article>`;
   }
 
@@ -154,7 +183,7 @@ export function mountAICoach(container, { context = {}, onExit, exitLabel = "返
     const rendered = turns.map((turn) => {
       if (turn.role === "user") return `<article class="ai-message ai-message-user"><span class="ai-message-author">${mode === "demo" ? "案例玩家" : "你"}</span><div>${paragraph(turn.content)}</div></article>`;
       const interpretation = formatCoachInterpretation(turn.result);
-      return `<article class="ai-message ai-message-coach"><span class="ai-message-author">${mode === "demo" ? "案例分析" : "AI 教练"}</span><div>${interpretation && interpretation !== turn.result.result?.reason ? `<p class="ai-coach-interpretation">${paragraph(interpretation)}</p>` : ""}${turn.result.question ? `<p class="ai-question">${paragraph(turn.result.question.text)}</p>` : ""}${turn.result.result ? renderResult(turn.result) : ""}</div></article>`;
+      return `<article class="ai-message ai-message-coach"><span class="ai-message-author">${mode === "demo" ? "案例分析" : "AI 教练"}</span><div>${interpretation && turn.result.interpretation !== turn.result.result?.reason ? `<p class="ai-coach-interpretation">${paragraph(interpretation)}</p>` : ""}${turn.result.question ? `<p class="ai-question">${paragraph(turn.result.question.text)}</p>` : ""}${turn.result.result ? renderResult(turn.result) : ""}</div></article>`;
     }).join("");
     return `<div class="ai-conversation" role="log" aria-label="教练对话" aria-live="polite">
       <article class="ai-message ai-message-coach"><span class="ai-message-author">${mode === "demo" ? "案例起点" : "AI 教练"}</span><div><p>${opening}</p></div></article>
@@ -171,7 +200,7 @@ export function mountAICoach(container, { context = {}, onExit, exitLabel = "返
   function renderComposer() {
     if (intentChoice) return `<div class="ai-intent-choice" role="group" aria-label="选择这次先解决的问题"><h3>这次先帮你解决哪一件事？</h3><p>你提到了辅助搭配，也说到了对线经历。先选一个方向，之后还可以回来继续。</p><blockquote>${paragraph(draft)}</blockquote><div class="ai-task-buttons"><button class="ai-secondary-button" type="button" data-ai-action="intent-support">先看辅助搭配</button><button class="ai-secondary-button" type="button" data-ai-action="intent-diagnosis">先复盘这次对线</button><button class="ai-text-button" type="button" data-ai-action="intent-edit">修改我的问题</button></div></div>`;
     if (latest && latest.status !== "question") {
-      return `<div class="ai-completed ai-save-section"><p>${mode === "demo" ? "这项建议来自预设案例，可以保存为示例任务体验下次查看。" : "如果这项行动适合你，保存后下一次回来还可以查看。"}</p><p class="ai-storage-note">只在当前浏览器保存任务与引用依据，不保存完整对话。仅保留一项，可随时清除。</p>${taskNotice ? `<p role="status">${escapeHTML(taskNotice)}</p>` : ""}${pendingTask ? `<div class="ai-task-confirm" role="group" aria-label="确认替换任务"><p>将用${pendingTask.source === "demo" ? "此示例任务" : "这项任务"}替换「${escapeHTML(stored.task?.result.title || "无法读取的旧记录")}」。原记录不会保留。</p><button class="ai-secondary-button" type="button" data-ai-action="confirm-save">确认替换</button><button class="ai-text-button" type="button" data-ai-action="cancel-save">保留原记录</button></div>` : `<div class="ai-task-buttons"><button class="ai-secondary-button" type="button" data-ai-action="save-task">${mode === "demo" ? "保存为示例任务" : latest.status === "collect" ? "保存观察任务" : "设为当前训练"}</button>${stored.task ? '<button class="ai-text-button" type="button" data-ai-action="view-task">查看已保存任务 →</button>' : ""}</div>`}<button class="ai-text-button" type="button" data-ai-action="restart">${mode === "demo" ? "再看一个案例" : "重新找一个突破口"} <span aria-hidden="true">↗</span></button></div>`;
+      return `<div class="ai-completed ai-save-section"><p>${mode === "demo" ? "这项建议来自预设案例，可以保存为示例任务体验下次查看。" : "如果这项行动适合你，保存后下一次回来还可以查看。"}</p><p class="ai-storage-note">只在当前浏览器保存任务与引用依据，不保存完整对话。仅保留一项，可随时清除。</p>${taskNotice ? `<p role="status">${escapeHTML(taskNotice)}</p>` : ""}${pendingTask ? `<div class="ai-task-confirm" role="group" aria-label="确认替换任务"><p>将用${pendingTask.source === "demo" ? "此示例任务" : "这项任务"}替换「${escapeHTML(formatResultTitle(stored.task?.result) || "无法读取的旧记录")}」。原记录不会保留。</p><button class="ai-secondary-button" type="button" data-ai-action="confirm-save">确认替换</button><button class="ai-text-button" type="button" data-ai-action="cancel-save">保留原记录</button></div>` : `<div class="ai-task-buttons"><button class="ai-secondary-button" type="button" data-ai-action="save-task">${mode === "demo" ? "保存为示例任务" : latest.status === "collect" ? "保存下一局观察任务" : "设为下一局训练"}</button>${stored.task ? '<button class="ai-text-button" type="button" data-ai-action="view-task">查看已保存任务 →</button>' : ""}</div>`}<button class="ai-text-button" type="button" data-ai-action="restart">${mode === "demo" ? "再看一个案例" : "重新找一个突破口"} <span aria-hidden="true">↗</span></button></div>`;
     }
     if (mode === "demo") {
       const next = selectedCase?.turns[demoIndex];
@@ -195,9 +224,9 @@ export function mountAICoach(container, { context = {}, onExit, exitLabel = "返
     const task = stored.task;
     const title = task ? task.source === "demo" ? "已保存的示例任务" : task.status === "collect" ? "当前观察任务" : "当前训练" : "当前没有可查看的任务";
     container.innerHTML = `<section class="screen ai-screen ai-training-screen"><div class="ai-topbar"><button class="flow-back" type="button" data-ai-action="exit">← ${escapeHTML(exitLabel)}</button><span class="ai-connection">${task?.source === "demo" ? "预设案例 · 非个人训练" : "当前浏览器保存"}</span></div><header class="ai-header"><p class="ai-section-kicker">公孙离 · 下一次继续</p><h1 id="saved-training-title" tabindex="-1">${title}</h1><p>一次只带走一个重点，先记录实际发生了什么。</p></header>
-      ${task ? `${task.source === "demo" ? `<p class="ai-demo-banner">示例来自「${escapeHTML(task.caseTitle)}」，不是根据你的经历得出的建议。</p>` : ""}${renderResult(task)}<details class="ai-saved-evidence"><summary>查看保存时的判断依据（${task.evidence.length} 条）</summary>${task.evidence.length ? `<ul>${task.evidence.map((item) => `<li><strong>${escapeHTML(item.label)}</strong><blockquote>“${paragraph(item.quote)}”</blockquote></li>`).join("")}</ul>` : "<p>当时没有足够的明确证据，因此先补充观察。</p>"}</details><p class="ai-storage-note">保存于 ${escapeHTML(new Date(task.createdAt).toLocaleString("zh-CN"))}。仅在当前浏览器、同一访问地址可见，清除浏览器数据也会移除这项记录。</p><p class="ai-storage-note">这版先支持保存与查看。赛后反馈和训练调整还在建设中。</p>` : `<div class="ai-connection-notice" role="status"><p>${stored.error === "unavailable" ? "浏览器暂时不允许读取保存的任务。可以检查浏览器设置后重试；当前诊断仍可使用。" : stored.error === "invalid" ? "已有记录无法读取。你可以清除这项记录，再重新保存任务。" : "完成一次诊断并主动保存后，就能在这里找到下一次的行动。也可以保存示例任务体验这个流程。"}</p></div>`}
+      ${task ? `${task.source === "demo" ? `<p class="ai-demo-banner">示例来自「${escapeHTML(task.caseTitle)}」，不是根据你的经历得出的建议。</p>` : ""}${renderResult(task)}<details class="ai-saved-evidence"><summary>回看当时我们为什么选这个（${task.evidence.length} 条）</summary>${task.evidence.length ? `<ul>${task.evidence.map((item) => `<li><strong>${escapeHTML(item.label)}</strong><blockquote>“${paragraph(item.quote)}”</blockquote></li>`).join("")}</ul>` : "<p>当时信息还不够，所以先选择了观察，而不是硬下结论。</p>"}</details><p class="ai-storage-note">保存于 ${escapeHTML(new Date(task.createdAt).toLocaleString("zh-CN"))}。仅在当前浏览器、同一访问地址可见，清除浏览器数据也会移除这项记录。</p><p class="ai-storage-note">这版先支持保存与查看。赛后反馈和训练调整还在建设中。</p>` : `<div class="ai-connection-notice" role="status"><p>${stored.error === "unavailable" ? "浏览器暂时不允许读取保存的任务。可以检查浏览器设置后重试；仍可以继续找突破口。" : stored.error === "invalid" ? "已有记录无法读取。你可以清除这项记录，再重新保存任务。" : "找到一个突破口并保存后，就能在这里继续下一局训练。也可以保存示例任务体验这个流程。"}</p></div>`}
       ${taskNotice ? `<p class="ai-task-notice" role="status">${escapeHTML(taskNotice)}</p>` : ""}
-      ${confirmingClear ? `<div class="ai-task-confirm" role="group" aria-label="确认清除任务"><p>清除${task ? `「${escapeHTML(task.result.title)}」` : "这项无法读取的任务记录"}？之后需要重新保存。</p><button class="ai-secondary-button" type="button" data-ai-action="confirm-clear">确认清除</button><button class="ai-text-button" type="button" data-ai-action="cancel-clear">保留记录</button></div>` : `<div class="ai-task-buttons">${task || stored.error === "invalid" ? '<button class="ai-secondary-button" type="button" data-ai-action="clear-task">清除已保存任务</button>' : ""}${stored.error === "unavailable" ? '<button class="ai-secondary-button" type="button" data-ai-action="view-task">重新读取</button>' : ""}<button class="ai-text-button" type="button" data-ai-action="new-diagnosis">${task ? "重新找一个突破口" : "找突破口或看看案例"} →</button></div>`}
+      ${confirmingClear ? `<div class="ai-task-confirm" role="group" aria-label="确认清除任务"><p>清除${task ? `「${escapeHTML(formatResultTitle(task.result))}」` : "这项无法读取的任务记录"}？之后需要重新保存。</p><button class="ai-secondary-button" type="button" data-ai-action="confirm-clear">确认清除</button><button class="ai-text-button" type="button" data-ai-action="cancel-clear">保留记录</button></div>` : `<div class="ai-task-buttons">${task || stored.error === "invalid" ? '<button class="ai-secondary-button" type="button" data-ai-action="clear-task">清除已保存任务</button>' : ""}${stored.error === "unavailable" ? '<button class="ai-secondary-button" type="button" data-ai-action="view-task">重新读取</button>' : ""}<button class="ai-text-button" type="button" data-ai-action="new-diagnosis">${task ? "重新找一个突破口" : "找突破口或看看案例"} →</button></div>`}
     </section>`;
   }
 
@@ -250,7 +279,9 @@ export function mountAICoach(container, { context = {}, onExit, exitLabel = "返
     requestAnimationFrame(() => {
       if (!alive) return;
       const log = container.querySelector(".ai-conversation");
-      if (log) log.scrollTop = log.scrollHeight;
+      const resultCard = container.querySelector(".ai-result");
+      if (resultCard) resultCard.scrollIntoView({ block: "start", behavior: "instant" });
+      else if (log) log.scrollTop = log.scrollHeight;
     });
   }
 
@@ -318,7 +349,7 @@ export function mountAICoach(container, { context = {}, onExit, exitLabel = "返
       appendResult(data.result);
     } catch (issue) {
       if (!alive || version !== requestVersion) return;
-      error = issue.name === "AbortError" ? "这次等待时间较长。请检查连接后重试。" : issue instanceof SyntaxError ? "服务没有返回完整的诊断内容，请重试。" : issue.message === "Failed to fetch" ? "连接中断了，请确认本地服务仍在运行。" : issue.message || "连接暂时中断，请稍后重试。";
+      error = issue.name === "AbortError" ? "这次等待时间较长。请检查连接后重试。" : issue instanceof SyntaxError ? "服务没有返回完整的分析内容，请重试。" : issue.message === "Failed to fetch" ? "连接中断了，请确认本地服务仍在运行。" : issue.message || "连接暂时中断，请稍后重试。";
     } finally {
       clearTimeout(timeout);
       if (alive && version === requestVersion) { loading = false; render(); }
